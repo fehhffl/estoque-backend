@@ -16,18 +16,48 @@ const db = mysql.createPool({
 });
 
 app.get("/products", async (req: Request, res: Response) => {
-  const [rows] = await db.execute("SELECT * FROM PRODUCTS");
-  res.status(200).json(rows);
+  try {
+    const [rows] = await db.execute("SELECT * FROM PRODUCTS");
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Falha ao retornar produtos." });
+  }
 });
+
+app.post("/login");
 
 app.post("/register", async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
-  const encryptedPassword = await bcrypt.hash(password, 10); // 10 = numero de vezes que o hash sera aplicado na potencia 2.
-  await db.execute(
-    "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
-    [username, email, encryptedPassword]
-  );
-  res.status(204).send();
+
+  if (!username || !email || !password) {
+    return res
+      .status(400)
+      .json({ message: "Username, email ou senha estao vazios" });
+  }
+
+  const [rows] = await db.execute("SELECT * FROM users WHERE email = ?", [
+    email,
+  ]);
+
+  if (Array.isArray(rows) && rows.length > 0) {
+    return res
+      .status(409)
+      .json({ message: "Email já esta cadastrado a uma conta." }); // 409 = conflict
+  }
+  try {
+    const encryptedPassword = await bcrypt.hash(password, 10); // 10 = numero de vezes que o hash sera aplicado na potencia 2.
+
+    await db.execute(
+      "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
+      [username, email, encryptedPassword]
+    );
+
+    res.status(204).send();
+  } catch (error) {
+    console.error("error creating user.", error);
+    res.status(500).json({ message: "Erro ao criar usuario." });
+  }
 });
 
 const PORT = 8000;
