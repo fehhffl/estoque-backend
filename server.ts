@@ -1,11 +1,13 @@
-const express = require("express");
 import { Request, Response } from "express";
 import mysql from "mysql2/promise";
 import dotenv from "dotenv";
+import bcrypt from "bcrypt";
+
+const express = require("express");
 const app = express();
+app.use(express.json());
 dotenv.config();
 
-// Rota inicial
 const db = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -18,7 +20,16 @@ app.get("/products", async (req: Request, res: Response) => {
   res.status(200).json(rows);
 });
 
-// Configurando porta
+app.post("/register", async (req: Request, res: Response) => {
+  const { username, email, password } = req.body;
+  const encryptedPassword = await bcrypt.hash(password, 10); // 10 = numero de vezes que o hash sera aplicado na potencia 2.
+  await db.execute(
+    "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
+    [username, email, encryptedPassword]
+  );
+  res.status(204).send();
+});
+
 const PORT = 8000;
 app.listen(PORT, () => {
   console.log(`Servidor servidor em http://localhost:${PORT}`);
