@@ -18,6 +18,7 @@ const db = mysql.createPool({
 app.get("/products", async (req: Request, res: Response) => {
   try {
     const [rows] = await db.execute("SELECT * FROM PRODUCTS");
+
     res.status(200).json(rows);
   } catch (error) {
     console.error(error);
@@ -25,7 +26,31 @@ app.get("/products", async (req: Request, res: Response) => {
   }
 });
 
-app.post("/login");
+app.post("/login", async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email ou senha estao vazios." });
+  }
+  try {
+    const encryptedPassword = await bcrypt.hash(password, 10); // Encriptando a senha que nos enviaram da mesma maneira que fizemos quando enviamos pro backend da primeira vez para poder compara-la com a do backend.
+    const [rows] = await db.execute(
+      "SELECT * FROM user WHERE email = ? AND password = ? ",
+      [email, encryptedPassword]
+    );
+
+    if (Array.isArray(rows) && rows.length > 0) {
+      // se retornou pelo menos uma linha, quer dizer que o usuario e senha existem no db.
+      return res.status(200); // Prevençoes de seguranças : Poderia colocar um token para o usuario se autenticar nas proximas requisiçoes.
+    } else {
+      // rows = 0 (Quando nao deu nenhum match com nenhum email e senha)
+      return res.status(401).json({ message: "Usario ou senha incorretos." });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Falha desconhecida no login" });
+  }
+});
 
 app.post("/register", async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
@@ -33,7 +58,7 @@ app.post("/register", async (req: Request, res: Response) => {
   if (!username || !email || !password) {
     return res
       .status(400)
-      .json({ message: "Username, email ou senha estao vazios" });
+      .json({ message: "Username, email ou senha estao vazios." });
   }
 
   const [rows] = await db.execute("SELECT * FROM users WHERE email = ?", [
