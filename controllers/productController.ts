@@ -1,8 +1,8 @@
-import { NextFunction, Request, RequestHandler, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { ProductModel } from "../models/productModel";
 
 export class ProductController {
-  static async getAll(req: Request, res: Response, next: NextFunction) {
+  static getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const products = await ProductModel.getAll();
       return res.status(200).json(products);
@@ -10,9 +10,32 @@ export class ProductController {
       console.error(error);
       return res.status(500).json({ message: "Falha ao retornar produtos." });
     }
-  }
+  };
 
-  static async update(req: Request, res: Response, next: NextFunction) {
+  static create = async (req: Request, res: Response) => {
+    const { name, description, value, quantity } = req.body;
+
+    if (
+      !name ||
+      !description ||
+      value === undefined ||
+      quantity === undefined
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Todos os campos são obrigatórios." });
+    }
+
+    try {
+      await ProductModel.create({ name, description, value, quantity });
+      return res.status(204).json({ message: "Produto criado com sucesso!" });
+    } catch (error) {
+      console.error("Erro ao criar produto:", error);
+      return res.status(500).json({ message: "Erro ao criar produto." });
+    }
+  };
+
+  static update = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name, description, value, quantity } = req.body;
 
@@ -42,9 +65,9 @@ export class ProductController {
       console.error("Erro ao atualizar produto:", error);
       return res.status(500).json({ message: "Erro ao atualizar produto." });
     }
-  }
+  };
 
-  static async getImage(req: Request, res: Response, next: NextFunction) {
+  static getImage = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     try {
@@ -60,9 +83,9 @@ export class ProductController {
       console.error("Erro ao carregar imagem:", error);
       return res.status(500).json({ message: "Erro ao carregar imagem." });
     }
-  }
+  };
 
-  static async updateImage(req: Request, res: Response, next: NextFunction) {
+  static updateImage = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { image } = req.body;
 
@@ -79,5 +102,5 @@ export class ProductController {
       console.error("Erro ao atualizar imagem:", error);
       return res.status(500).json({ message: "Erro ao atualizar imagem." });
     }
-  }
+  };
 }

@@ -17,6 +17,23 @@ class ProductModel {
     return rows as Product[];
   }
 
+  static async create(newProduct: {
+    name: string;
+    description: string;
+    value: number;
+    quantity: number;
+  }): Promise<void> {
+    await db.execute(
+      "INSERT INTO products (name, description, value, quantity) VALUES (?, ?, ?, ?)",
+      [
+        newProduct.name,
+        newProduct.description,
+        newProduct.value,
+        newProduct.quantity,
+      ]
+    );
+  }
+
   static async update(
     id: number,
     updatedProduct: {
