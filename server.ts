@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import mysql from "mysql2/promise";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+import { User } from "./models/user";
 
 const express = require("express");
 const app = express();
@@ -33,15 +34,22 @@ app.post("/login", async (req: Request, res: Response) => {
     return res.status(400).json({ message: "Email ou senha estao vazios." });
   }
   try {
-    const encryptedPassword = await bcrypt.hash(password, 10); // Encriptando a senha que nos enviaram da mesma maneira que fizemos quando enviamos pro backend da primeira vez para poder compara-la com a do backend.
-    const [rows] = await db.execute(
-      "SELECT * FROM user WHERE email = ? AND password = ? ",
-      [email, encryptedPassword]
-    );
+    const encryptedPassword = await bcrypt.hash(password, 10);
+    console.log(encryptedPassword); // Encriptando a senha que nos enviaram da mesma maneira que fizemos quando enviamos pro backend da primeira vez para poder compara-la com a do backend.
+    const [rows] = await db.execute("SELECT * FROM users WHERE email = ?", [
+      email,
+    ]);
 
+    // se retornou pelo menos uma linha, quer dizer que o email existe no db.
     if (Array.isArray(rows) && rows.length > 0) {
-      // se retornou pelo menos uma linha, quer dizer que o usuario e senha existem no db.
-      return res.status(200); // Prevençoes de seguranças : Poderia colocar um token para o usuario se autenticar nas proximas requisiçoes.
+      const user: User = rows[0] as User;
+      const result = await bcrypt.compare(password, user.password); // o compare pega a senha encripitada do db e compara com a senha que o usuario nos cedeu
+      // se deu match
+      if (result) {
+        return res.status(204).send(); // Prevençoes de seguranças : Poderia colocar um token para o usuario se autenticar nas proximas requisiçoes.
+      } else {
+        return res.status(401).json({ message: "Usario ou senha incorretos." }); // senha nao deu match com a senha concedida.
+      }
     } else {
       // rows = 0 (Quando nao deu nenhum match com nenhum email e senha)
       return res.status(401).json({ message: "Usario ou senha incorretos." });
