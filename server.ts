@@ -19,7 +19,24 @@ const db = mysql.createPool({
 app.get("/products", async (req: Request, res: Response) => {
   try {
     const [rows] = await db.execute("SELECT * FROM PRODUCTS");
+    // rows é um array de objetos retornados pelo MySQL
+    const products = (rows as any[]).map((row) => {
+      let base64Image = null;
 
+      // Se existir conteúdo de imagem, convertemos para base64
+      if (row.imageBlob) {
+        base64Image = Buffer.from(row.imageBlob).toString("base64");
+        console.log(base64Image);
+      }
+      // Retorna um novo objeto já com a imagem em base64
+      return {
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        image: base64Image, // <-- imagem convertida para base64
+        quantity: row.quantity,
+      };
+    });
     res.status(200).json(rows);
   } catch (error) {
     console.error(error);
@@ -35,7 +52,6 @@ app.post("/login", async (req: Request, res: Response) => {
   }
   try {
     const encryptedPassword = await bcrypt.hash(password, 10);
-    console.log(encryptedPassword); // Encriptando a senha que nos enviaram da mesma maneira que fizemos quando enviamos pro backend da primeira vez para poder compara-la com a do backend.
     const [rows] = await db.execute("SELECT * FROM users WHERE email = ?", [
       email,
     ]);
@@ -90,6 +106,45 @@ app.post("/register", async (req: Request, res: Response) => {
   } catch (error) {
     console.error("error creating user.", error);
     res.status(500).json({ message: "Erro ao criar usuario." });
+  }
+});
+
+// Função para atualizar um produto
+
+app.put("/product/update/:id", async (req: Request, res: Response) => {
+  try {
+    // A rota pode ser algo como PUT /products/:id
+    // Então obtemos o "id" dos params
+    const { id } = req.params;
+
+    // Desestruturamos os dados do corpo da requisição
+    const { name, description, quantity, image } = req.body;
+
+    // Se a imagem vier em base64, convertemos para Buffer (BLOB)
+    let imageBlob: Buffer | null = null;
+    if (image) {
+      imageBlob = Buffer.from(image, "base64");
+    }
+
+    // Montamos a query de UPDATE
+    // Ajuste o nome das colunas conforme o seu banco
+    const updateQuery = `
+      UPDATE products
+      SET
+        name = ?,
+        description = ?,
+        quantity = ?,
+        imageBlob = ?
+      WHERE id = ?
+    `;
+    // Executamos a query, passando os valores
+
+    await db.execute(updateQuery, [name, description, quantity, imageBlob, id]);
+
+    return res.status(200).json({ message: "Produto atualizado com sucesso." });
+  } catch (error) {
+    console.error("Erro ao atualizar produto:", error);
+    return res.status(500).json({ error: "Erro ao atualizar produto." });
   }
 });
 
