@@ -1,21 +1,12 @@
 import { Request, Response } from "express";
-import mysql from "mysql2/promise";
-import dotenv from "dotenv";
+
 import bcrypt from "bcrypt";
-import { User } from "./models/user";
+import { User } from "./models/userModel";
 
 const express = require("express");
 const app = express();
 app.use(express.json({ limit: "10mb" })); // Aumenta o tamanho do payload máximo para aguentar as imagens
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
-dotenv.config();
-
-const db = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
 
 app.get("/products", async (req: Request, res: Response) => {
   try {
