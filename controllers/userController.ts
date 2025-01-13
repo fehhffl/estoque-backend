@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import { UserModel } from "../models/userModel";
 
 export class UserController {
-  static async login(res: Response, req: Request, next: NextFunction) {
+  static async login(req: Request, res: Response) {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -29,7 +29,7 @@ export class UserController {
     }
   }
 
-  static async register(res: Response, req: Request, next: NextFunction) {
+  static async register(req: Request, res: Response) {
     const { username, email, password } = req.body;
 
     if (!username || !email || !password) {
