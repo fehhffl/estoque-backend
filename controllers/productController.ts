@@ -27,8 +27,8 @@ export class ProductController {
     }
 
     try {
-      await ProductModel.create({ name, description, value, quantity });
-      return res.status(204).json({ message: "Produto criado com sucesso!" });
+      const productId = await ProductModel.create({ name, description, value, quantity });
+      return res.status(200).json({ productId });
     } catch (error) {
       console.error("Erro ao criar produto:", error);
       return res.status(500).json({ message: "Erro ao criar produto." });

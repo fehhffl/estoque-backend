@@ -1,4 +1,8 @@
+import { OkPacket } from "mysql2/promise";
 import { db } from "../config/db";
+interface InsertResult extends OkPacket {
+  insertId: number;
+}
 
 type Product = {
   id: number;
@@ -22,8 +26,8 @@ class ProductModel {
     description: string;
     value: number;
     quantity: number;
-  }): Promise<void> {
-    await db.execute(
+  }): Promise<number> {
+   const [results] = await db.execute<InsertResult>(
       "INSERT INTO products (name, description, value, quantity) VALUES (?, ?, ?, ?)",
       [
         newProduct.name,
@@ -32,6 +36,7 @@ class ProductModel {
         newProduct.quantity,
       ]
     );
+    return results.insertId
   }
 
   static async update(
