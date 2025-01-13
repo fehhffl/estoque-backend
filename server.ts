@@ -14,8 +14,10 @@ app.post("/register", UserController.register);
 app.get("/products", ProductController.getAll);
 app.post("/products/create", ProductController.create);
 app.put("/products/update/:id", ProductController.update);
+app.delete("/products/:id", ProductController.delete);
 app.get("/products/:id/image", ProductController.getImage);
 app.put("/products/:id/image", ProductController.updateImage);
+
 
 const PORT = process.env.PORT ?? 8000;
 

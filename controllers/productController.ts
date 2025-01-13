@@ -67,6 +67,31 @@ export class ProductController {
     }
   };
 
+  static delete = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    if (!id) {
+      return res
+        .status(400)
+        .json({ message: "O ID do produto é obrigatório." });
+    }
+
+    try {
+      // Verifica se o produto existe
+      const product = await ProductModel.findOne(id);
+
+      if (!product) {
+        return res.status(404).json({ message: "Produto não encontrado." });
+      }
+
+      await ProductModel.remove(id);
+
+      return res.status(200).json({ message: "Produto deletado com sucesso." });
+    } catch (error) {
+      console.error("Erro ao deletar produto:", error);
+      return res.status(500).json({ message: "Erro interno do servidor." });
+    }
+  };
+
   static getImage = async (req: Request, res: Response) => {
     const { id } = req.params;
 

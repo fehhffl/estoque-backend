@@ -54,6 +54,21 @@ class ProductModel {
       ]
     );
   }
+  static async findOne(id: string): Promise<Product | null> {
+    const [rows] = await db.execute("SELECT * FROM products WHERE id = ?", [
+      id,
+    ]);
+
+    if (Array.isArray(rows) && rows.length > 0) {
+      const product = rows[0] as Product;
+      return product;
+    }
+    return null;
+  }
+
+  static async remove(id: string): Promise<void> {
+    await db.execute("DELETE from products WHERE id = ?", [id]);
+  }
 
   static async getImage(id: number): Promise<Buffer | null> {
     const [rows] = await db.execute(
