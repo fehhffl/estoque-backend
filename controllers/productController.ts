@@ -38,7 +38,6 @@ export class ProductController {
   static update = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name, description, value, quantity } = req.body;
-
     if (
       !name ||
       !description ||
@@ -57,7 +56,6 @@ export class ProductController {
         value,
         quantity,
       });
-
       return res
         .status(200)
         .json({ message: "Produto atualizado com sucesso!" });

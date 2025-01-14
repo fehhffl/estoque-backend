@@ -9,7 +9,7 @@ type Product = {
   name: string;
   description: string;
   value: number;
-  imageBlob: Blob;
+  imageBlob: Buffer;
   quantity: number;
 };
 
